@@ -10,18 +10,19 @@ def generate_video(script_text: str) -> str:
     over a dynamic gradient background.
     Returns the URL path of the generated video.
     """
-    filename = f"gen_{uuid.uuid4().hex[:8]}.mp4"
+    filename = f"gen_{uuid.uuid4().hex[:8]}.gif"
     filepath = os.path.join("uploads", filename)
     
-    width, height = 720, 1280
-    fps = 30
+    # Lower resolution and fps for GIF to keep file size reasonable
+    width, height = 360, 640
+    fps = 15
     duration_sec = 5
     total_frames = fps * duration_sec
     
     import imageio
     
-    # We use imageio which has built-in ffmpeg for guaranteed headless writing
-    writer = imageio.get_writer(filepath, fps=fps, codec='libx264')
+    # We use imageio to write a GIF to completely avoid FFmpeg binary permission issues on Render
+    writer = imageio.get_writer(filepath, fps=fps)
     
     words = script_text.split()
     if not words:
@@ -48,8 +49,8 @@ def generate_video(script_text: str) -> str:
         
         # Calculate text size and center it
         font = cv2.FONT_HERSHEY_DUPLEX
-        font_scale = 4.0
-        thickness = 10
+        font_scale = 2.0
+        thickness = 5
         (text_w, text_h), baseline = cv2.getTextSize(text, font, font_scale, thickness)
         
         x = (width - text_w) // 2

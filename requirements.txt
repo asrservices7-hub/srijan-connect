@@ -8,4 +8,3 @@ pydantic
 jinja2
 python-multipart
 imageio
-imageio-ffmpeg

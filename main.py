@@ -6,6 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+from sqlalchemy.orm.attributes import flag_modified
 from pydantic import BaseModel
 import razorpay
 
@@ -110,8 +111,8 @@ async def api_generate_video(req: dict, db: Session = Depends(get_db)):
     data["posts"] = posts
     
     # SQLAlchemy JSON columns sometimes need reassignment to detect changes
-    import copy
-    record.value = copy.deepcopy(data)
+    # Use flag_modified to ensure it saves
+    flag_modified(record, "value")
     db.commit()
     
     return {"status": "success", "video_url": video_url, "video_id": posts[0]["id"]}

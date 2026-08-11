@@ -10,7 +10,7 @@ def generate_video(script_text: str) -> str:
     over a dynamic gradient background.
     Returns the URL path of the generated video.
     """
-    filename = f"gen_{uuid.uuid4().hex[:8]}.webm"
+    filename = f"gen_{uuid.uuid4().hex[:8]}.mp4"
     filepath = os.path.join("uploads", filename)
     
     width, height = 720, 1280
@@ -18,9 +18,10 @@ def generate_video(script_text: str) -> str:
     duration_sec = 5
     total_frames = fps * duration_sec
     
-    # webm with VP80 codec works best for headless server and browser support
-    fourcc = cv2.VideoWriter_fourcc(*'VP80')
-    out = cv2.VideoWriter(filepath, fourcc, fps, (width, height))
+    import imageio
+    
+    # We use imageio which has built-in ffmpeg for guaranteed headless writing
+    writer = imageio.get_writer(filepath, fps=fps, codec='libx264')
     
     words = script_text.split()
     if not words:
@@ -30,14 +31,16 @@ def generate_video(script_text: str) -> str:
     if word_duration == 0: word_duration = 1
     
     for i in range(total_frames):
-        # Create a dynamic gradient background
+        # Create a dynamic gradient background (RGB format for imageio)
         img = np.zeros((height, width, 3), dtype=np.uint8)
         
         # Simple animation: pulsating color based on frame
         color_r = int(128 + 127 * math.sin(i * 0.1))
         color_g = int(128 + 127 * math.sin(i * 0.13))
         color_b = int(128 + 127 * math.sin(i * 0.17))
-        img[:] = (color_b, color_g, color_r)
+        # OpenCV still uses BGR for putText, but imageio writes RGB.
+        # Let's create an RGB image directly.
+        img[:] = (color_r, color_g, color_b)
         
         # Add text
         current_word_idx = min(i // word_duration, len(words) - 1)
@@ -52,13 +55,14 @@ def generate_video(script_text: str) -> str:
         x = (width - text_w) // 2
         y = (height + text_h) // 2
         
-        # Draw shadow then text
+        # Draw shadow then text (Note: cv2.putText expects BGR colors, but we are passing RGB colors 
+        # because the image itself is RGB and will be saved as RGB by imageio)
         cv2.putText(img, text, (x+5, y+5), font, font_scale, (0, 0, 0), thickness)
         cv2.putText(img, text, (x, y), font, font_scale, (255, 255, 255), thickness)
         
-        out.write(img)
+        writer.append_data(img)
         
-    out.release()
+    writer.close()
     return f"/uploads/{filename}"
 
 if __name__ == "__main__":

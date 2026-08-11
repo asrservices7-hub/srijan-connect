@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#14111d" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Srijan Connect" />
+    <meta name="description" content="Social, media, messaging, and calling app prototypes created by Srijan Bajpai." />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="icon.svg" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <title>Srijan Connect</title>
+  </head>
+  <body>
+    <div class="layout">
+      <aside>
+        <a class="brand" href="#home"><span>◆</span><b>Srijan<br>Connect</b></a>
+        <div id="profile-widget"></div>
+        <nav id="side-nav" aria-label="Apps"></nav>
+        <p class="credit">Created by<br><strong>Srijan Bajpai</strong></p>
+      </aside>
+      <main id="view" tabindex="-1"></main>
+      <nav id="mobile-nav" aria-label="Quick navigation"></nav>
+    </div>
+    <script src="app.js?v=2"></script>
+    <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');</script>
+  </body>
+</html>

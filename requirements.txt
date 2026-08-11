@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+sqlalchemy
+razorpay
+opencv-python-headless
+numpy
+pydantic
+jinja2

@@ -10,7 +10,7 @@ def generate_video(script_text: str) -> str:
     over a dynamic gradient background.
     Returns the URL path of the generated video.
     """
-    filename = f"gen_{uuid.uuid4().hex[:8]}.mp4"
+    filename = f"gen_{uuid.uuid4().hex[:8]}.webm"
     filepath = os.path.join("uploads", filename)
     
     width, height = 720, 1280
@@ -18,9 +18,8 @@ def generate_video(script_text: str) -> str:
     duration_sec = 5
     total_frames = fps * duration_sec
     
-    # mp4v works well for most browsers, though avc1 is better if available
-    # We will try mp4v first
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    # webm with VP80 codec works best for headless server and browser support
+    fourcc = cv2.VideoWriter_fourcc(*'VP80')
     out = cv2.VideoWriter(filepath, fourcc, fps, (width, height))
     
     words = script_text.split()

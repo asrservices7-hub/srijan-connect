@@ -6,5 +6,3 @@ opencv-python-headless
 numpy
 pydantic
 jinja2
-python-multipart
-imageio

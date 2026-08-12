@@ -245,11 +245,7 @@ function social() {
         ${p.length ? p.slice().reverse().map((x) => {
           let mediaHtml = '';
           if (x.type === 'video' && x.media) {
-            if (x.media.endsWith('.gif')) {
-              mediaHtml = `<img src="${x.media}" style="width: 100%; border-radius: 8px; margin-top: 10px;">`;
-            } else {
-              mediaHtml = `<video src="${x.media}" controls style="width: 100%; border-radius: 8px; margin-top: 10px;"></video>`;
-            }
+            mediaHtml = `<video src="${x.media}" controls style="width: 100%; border-radius: 8px; margin-top: 10px;"></video>`;
           }
           
           let publishHtml = '';
@@ -283,8 +279,8 @@ function video() {
     
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-top: 20px;">
       ${posts.length ? posts.map(p => `
-        <div class="video-card">
-          ${p.media.endsWith('.gif') ? `<img src="${p.media}" style="width: 100%; height: 120px; object-fit: cover;">` : `<video src="${p.media}" style="width: 100%; height: 120px; object-fit: cover;" controls preload="metadata"></video>`}
+        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden;">
+          <video src="${p.media}" style="width: 100%; height: 120px; object-fit: cover;" controls preload="metadata"></video>
           <div style="padding: 10px;">
             <p style="font-size: 12px; margin-bottom: 5px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(p.text)}</p>
             <p style="font-size: 10px; color: var(--muted);">${p.published_platforms ? '✅ Published' : '⏳ Draft'}</p>
@@ -319,9 +315,9 @@ function reels() {
   return `<article class="module" style="height: 100%; padding: 0; overflow: hidden;">${heading('reels')}
     <div class="body" style="padding: 0; display: flex; flex-direction: column; align-items: center; background: #000; overflow-y: scroll; height: calc(100vh - 120px); scroll-snap-type: y mandatory;">
       ${posts.length ? posts.map(p => `
-        <div class="reel-card">
-          ${p.media.endsWith('.gif') ? `<img src="${p.media}" style="width: 100%; max-height: 100%; object-fit: contain;">` : `<video src="${p.media}" style="width: 100%; max-height: 100%; object-fit: contain;" controls preload="metadata"></video>`}
-          <div class="reel-info">
+        <div style="width: 100%; height: 100%; max-width: 400px; flex-shrink: 0; scroll-snap-align: start; position: relative; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid #333;">
+          <video src="${p.media}" style="width: 100%; max-height: 100%; object-fit: contain;" controls preload="metadata"></video>
+          <div style="position: absolute; bottom: 20px; left: 10px; right: 60px; color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.8);">
             <h4 style="margin: 0; font-size: 14px;">@srijan_creator</h4>
             <p style="margin: 5px 0 0 0; font-size: 13px;">${escapeHTML(p.text)}</p>
           </div>
@@ -746,9 +742,8 @@ $('#view').addEventListener('click', e => {
         const container = $('#generated-video-container');
         if (container) {
           container.style.display = 'block';
-          // Use img tag since the backend now returns a .gif for maximum compatibility
           container.innerHTML = `
-            <img src="${data.video_url}" style="width:100%; border-radius:8px; margin-bottom:10px; display:block !important;"></img>
+            <video src="${data.video_url}" controls style="width:100%; border-radius:8px; margin-bottom:10px; display:block !important;"></video>
             <button class="publish-btn" data-videoid="${data.video_id}" style="width:100%; padding:10px; background: #28a745; color: white !important; font-weight: bold; border-radius:8px; border:none; cursor:pointer;">🚀 Publish Everywhere</button>
           `;
         }
@@ -762,11 +757,11 @@ $('#view').addEventListener('click', e => {
             }
           });
       } else {
-        throw new Error(data.message || "Failed to generate video");
+        throw new Error("Failed to generate");
       }
     })
     .catch(err => {
-      statusEl.innerText = "❌ " + err.message;
+      statusEl.innerText = "❌ Error generating video. Is the backend running?";
       statusEl.style.color = "red";
     })
     .finally(() => {

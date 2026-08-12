@@ -6,7 +6,6 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from sqlalchemy.orm.attributes import flag_modified
 from pydantic import BaseModel
 import razorpay
 
@@ -93,11 +92,7 @@ async def api_generate_video(req: dict, db: Session = Depends(get_db)):
         return {"status": "error", "requires_subscription": True, "message": "Please subscribe to generate more videos."}
         
     script = req.get("script", "Srijan Autonomous Engine")
-    try:
-        video_url = video_engine.generate_video(script)
-    except Exception as e:
-        import traceback
-        return {"status": "error", "message": f"Engine error: {str(e)}", "trace": traceback.format_exc()}
+    video_url = video_engine.generate_video(script)
     
     # Increment count
     data["videos_generated_count"] = videos_generated + 1
@@ -115,8 +110,8 @@ async def api_generate_video(req: dict, db: Session = Depends(get_db)):
     data["posts"] = posts
     
     # SQLAlchemy JSON columns sometimes need reassignment to detect changes
-    # Use flag_modified to ensure it saves
-    flag_modified(record, "value")
+    import copy
+    record.value = copy.deepcopy(data)
     db.commit()
     
     return {"status": "success", "video_url": video_url, "video_id": posts[0]["id"]}

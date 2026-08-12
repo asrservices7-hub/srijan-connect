@@ -762,11 +762,11 @@ $('#view').addEventListener('click', e => {
             }
           });
       } else {
-        throw new Error("Failed to generate");
+        throw new Error(data.message || "Failed to generate video");
       }
     })
     .catch(err => {
-      statusEl.innerText = "❌ Error generating video. Is the backend running?";
+      statusEl.innerText = "❌ " + err.message;
       statusEl.style.color = "red";
     })
     .finally(() => {

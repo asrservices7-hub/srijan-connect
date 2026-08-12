@@ -93,7 +93,11 @@ async def api_generate_video(req: dict, db: Session = Depends(get_db)):
         return {"status": "error", "requires_subscription": True, "message": "Please subscribe to generate more videos."}
         
     script = req.get("script", "Srijan Autonomous Engine")
-    video_url = video_engine.generate_video(script)
+    try:
+        video_url = video_engine.generate_video(script)
+    except Exception as e:
+        import traceback
+        return {"status": "error", "message": f"Engine error: {str(e)}", "trace": traceback.format_exc()}
     
     # Increment count
     data["videos_generated_count"] = videos_generated + 1

@@ -10,18 +10,19 @@ def generate_video(script_text: str) -> str:
     over a dynamic gradient background.
     Returns the URL path of the generated video.
     """
-    filename = f"gen_{uuid.uuid4().hex[:8]}.mp4"
+    filename = f"gen_{uuid.uuid4().hex[:8]}.gif"
     filepath = os.path.join("uploads", filename)
     
-    width, height = 720, 1280
-    fps = 30
+    # Lower resolution and fps for GIF to keep file size reasonable
+    width, height = 360, 640
+    fps = 15
     duration_sec = 5
     total_frames = fps * duration_sec
     
-    # mp4v works well for most browsers, though avc1 is better if available
-    # We will try mp4v first
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out = cv2.VideoWriter(filepath, fourcc, fps, (width, height))
+    import imageio
+    
+    # We use imageio to write a GIF to completely avoid FFmpeg binary permission issues on Render
+    writer = imageio.get_writer(filepath, fps=fps)
     
     words = script_text.split()
     if not words:
@@ -31,14 +32,16 @@ def generate_video(script_text: str) -> str:
     if word_duration == 0: word_duration = 1
     
     for i in range(total_frames):
-        # Create a dynamic gradient background
+        # Create a dynamic gradient background (RGB format for imageio)
         img = np.zeros((height, width, 3), dtype=np.uint8)
         
         # Simple animation: pulsating color based on frame
         color_r = int(128 + 127 * math.sin(i * 0.1))
         color_g = int(128 + 127 * math.sin(i * 0.13))
         color_b = int(128 + 127 * math.sin(i * 0.17))
-        img[:] = (color_b, color_g, color_r)
+        # OpenCV still uses BGR for putText, but imageio writes RGB.
+        # Let's create an RGB image directly.
+        img[:] = (color_r, color_g, color_b)
         
         # Add text
         current_word_idx = min(i // word_duration, len(words) - 1)
@@ -46,20 +49,21 @@ def generate_video(script_text: str) -> str:
         
         # Calculate text size and center it
         font = cv2.FONT_HERSHEY_DUPLEX
-        font_scale = 4.0
-        thickness = 10
+        font_scale = 2.0
+        thickness = 5
         (text_w, text_h), baseline = cv2.getTextSize(text, font, font_scale, thickness)
         
         x = (width - text_w) // 2
         y = (height + text_h) // 2
         
-        # Draw shadow then text
+        # Draw shadow then text (Note: cv2.putText expects BGR colors, but we are passing RGB colors 
+        # because the image itself is RGB and will be saved as RGB by imageio)
         cv2.putText(img, text, (x+5, y+5), font, font_scale, (0, 0, 0), thickness)
         cv2.putText(img, text, (x, y), font, font_scale, (255, 255, 255), thickness)
         
-        out.write(img)
+        writer.append_data(img)
         
-    out.release()
+    writer.close()
     return f"/uploads/{filename}"
 
 if __name__ == "__main__":

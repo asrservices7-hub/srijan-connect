@@ -6,6 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+from sqlalchemy.orm.attributes import flag_modified
 from pydantic import BaseModel
 import razorpay
 
@@ -80,9 +81,13 @@ async def upload_file(file: UploadFile = File(...)):
 async def api_generate_video(req: dict, db: Session = Depends(get_db)):
     record = db.query(models.AppData).filter(models.AppData.key == "global_state").first()
     if not record or not record.value:
-        return {"status": "error", "message": "No data found"}
-        
-    data = record.value
+        # Initialize an empty global state if this is a fresh deployment
+        data = {}
+        if not record:
+            record = models.AppData(key="global_state", value=data)
+            db.add(record)
+    else:
+        data = record.value
     
     # Paywall Logic
     videos_generated = data.get("videos_generated_count", 0)
@@ -92,7 +97,11 @@ async def api_generate_video(req: dict, db: Session = Depends(get_db)):
         return {"status": "error", "requires_subscription": True, "message": "Please subscribe to generate more videos."}
         
     script = req.get("script", "Srijan Autonomous Engine")
-    video_url = video_engine.generate_video(script)
+    try:
+        video_url = video_engine.generate_video(script)
+    except Exception as e:
+        import traceback
+        return {"status": "error", "message": f"Engine error: {str(e)}", "trace": traceback.format_exc()}
     
     # Increment count
     data["videos_generated_count"] = videos_generated + 1
@@ -110,8 +119,8 @@ async def api_generate_video(req: dict, db: Session = Depends(get_db)):
     data["posts"] = posts
     
     # SQLAlchemy JSON columns sometimes need reassignment to detect changes
-    import copy
-    record.value = copy.deepcopy(data)
+    # Use flag_modified to ensure it saves
+    flag_modified(record, "value")
     db.commit()
     
     return {"status": "success", "video_url": video_url, "video_id": posts[0]["id"]}
@@ -123,9 +132,12 @@ async def api_publish(req: dict, db: Session = Depends(get_db)):
     
     record = db.query(models.AppData).filter(models.AppData.key == "global_state").first()
     if not record or not record.value:
-        return {"status": "error", "message": "No data found"}
-        
-    data = record.value
+        data = {}
+        if not record:
+            record = models.AppData(key="global_state", value=data)
+            db.add(record)
+    else:
+        data = record.value
     posts = data.get("posts", [])
     
     target_post = None

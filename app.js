@@ -18,7 +18,8 @@ const APP_CATALOG = [
   ['delivery', '◒', 'Delivery', 'Food orders'],
   ['reels', '▣', 'Reels', 'Short video ideas'],
   ['live', '◌', 'Live', 'Broadcast plan'],
-  ['premium', '★', 'Premium', 'Unlock features']
+  ['premium', '★', 'Premium', 'Unlock features'],
+  ['planner', '📅', 'Planner', 'Daily schedule']
 ];
 
 const CORE_APPS = [
@@ -78,7 +79,7 @@ function escapeHTML(t) {
 }
 
 function getInstalledApps() {
-  const installedIds = db.get('installed_apps', ['social', 'video', 'music', 'chat', 'calls', 'maps', 'wallet', 'tasks']);
+  const installedIds = db.get('installed_apps', ['social', 'video', 'music', 'chat', 'calls', 'maps', 'wallet', 'tasks', 'planner']);
   return APP_CATALOG.filter(a => installedIds.includes(a[0]));
 }
 
@@ -235,10 +236,11 @@ function profile() {
 
 function social() {
   const p = db.get('posts', []);
-  return `<article class="module">${heading('social')}
+  return `<article class="module spatial">${heading('social')}
     <div class="body">
+      <button class="neural-btn" id="neural-sync-btn">🧠 AI Neural Sync</button>
       <form class="post-box" data-form="post">
-        <textarea name="body" rows="3" maxlength="500" placeholder="Share something with your community…" required></textarea>
+        <textarea id="social-textarea" name="body" rows="3" maxlength="500" placeholder="Share something with your community…" required></textarea>
         <div class="post-actions"><small>Saved persistently to your backend.</small><button class="action">Publish</button></div>
       </form>
       <div style="margin-top:17px">
@@ -246,9 +248,17 @@ function social() {
           let mediaHtml = '';
           if (x.type === 'video' && x.media) {
             if (x.media.endsWith('.gif')) {
-              mediaHtml = `<img src="${x.media}" style="width: 100%; border-radius: 8px; margin-top: 10px;">`;
+              mediaHtml = `<img src="${x.media}" style="width: 100%; border-radius: 8px; margin-top: 10px;">
+                           <div style="display:flex; gap:5px; margin-top:5px;">
+                             <a href="${x.media}" download="srijan_post.gif" style="flex:1; display:block; text-align:center; padding:8px; background:#4832a3; color:white; border-radius:8px; text-decoration:none; font-size:12px;">⬇️ Save</a>
+                             <button onclick="navigator.clipboard.writeText('${x.media}'); this.innerText='✅ Copied!'; setTimeout(() => this.innerText='🔗 Copy URL', 2000)" style="flex:1; display:block; text-align:center; padding:8px; background:#007bff; color:white; border-radius:8px; border:none; font-size:12px; cursor:pointer;">🔗 Copy URL</button>
+                           </div>`;
             } else {
-              mediaHtml = `<video src="${x.media}" controls style="width: 100%; border-radius: 8px; margin-top: 10px;"></video>`;
+              mediaHtml = `<video src="${x.media}" controls style="width: 100%; border-radius: 8px; margin-top: 10px;"></video>
+                           <div style="display:flex; gap:5px; margin-top:5px;">
+                             <a href="${x.media}" download="srijan_post.mp4" style="flex:1; display:block; text-align:center; padding:8px; background:#4832a3; color:white; border-radius:8px; text-decoration:none; font-size:12px;">⬇️ Save</a>
+                             <button onclick="navigator.clipboard.writeText('${x.media}'); this.innerText='✅ Copied!'; setTimeout(() => this.innerText='🔗 Copy URL', 2000)" style="flex:1; display:block; text-align:center; padding:8px; background:#007bff; color:white; border-radius:8px; border:none; font-size:12px; cursor:pointer;">🔗 Copy URL</button>
+                           </div>`;
             }
           }
           
@@ -287,7 +297,11 @@ function video() {
           ${p.media.endsWith('.gif') ? `<img src="${p.media}" style="width: 100%; height: 120px; object-fit: cover;">` : `<video src="${p.media}" style="width: 100%; height: 120px; object-fit: cover;" controls preload="metadata"></video>`}
           <div style="padding: 10px;">
             <p style="font-size: 12px; margin-bottom: 5px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(p.text)}</p>
-            <p style="font-size: 10px; color: var(--muted);">${p.published_platforms ? '✅ Published' : '⏳ Draft'}</p>
+            <p style="font-size: 10px; color: var(--muted); margin-bottom: 8px;">${p.published_platforms ? '✅ Published' : '⏳ Draft'}</p>
+            <div style="display:flex; gap:5px;">
+              <a href="${p.media}" download="srijan_video.gif" style="flex:1; display:block; text-align:center; padding:5px; background:var(--violet); color:white; border-radius:4px; text-decoration:none; font-size:10px;">⬇️ Save</a>
+              <button onclick="navigator.clipboard.writeText('${p.media}'); this.innerText='✅ Copied!'; setTimeout(() => this.innerText='🔗 URL', 2000)" style="flex:1; display:block; text-align:center; padding:5px; background:#007bff; color:white; border-radius:4px; border:none; font-size:10px; cursor:pointer;">🔗 URL</button>
+            </div>
           </div>
         </div>
       `).join('') : '<p class="empty" style="grid-column: 1 / -1;">No videos generated yet.</p>'}
@@ -323,7 +337,11 @@ function reels() {
           ${p.media.endsWith('.gif') ? `<img src="${p.media}" style="width: 100%; max-height: 100%; object-fit: contain;">` : `<video src="${p.media}" style="width: 100%; max-height: 100%; object-fit: contain;" controls preload="metadata"></video>`}
           <div class="reel-info">
             <h4 style="margin: 0; font-size: 14px;">@srijan_creator</h4>
-            <p style="margin: 5px 0 0 0; font-size: 13px;">${escapeHTML(p.text)}</p>
+            <p style="margin: 5px 0 10px 0; font-size: 13px;">${escapeHTML(p.text)}</p>
+            <div style="display:flex; gap:10px;">
+              <a href="${p.media}" download="srijan_reel.gif" style="display:inline-block; padding:8px 12px; background:rgba(255,255,255,0.2); color:white; border-radius:8px; text-decoration:none; font-size:12px; backdrop-filter:blur(4px);">⬇️ Save to Device</a>
+              <button onclick="navigator.clipboard.writeText('${p.media}'); this.innerText='✅ Copied!'; setTimeout(() => this.innerText='🔗 Copy Link', 2000)" style="display:inline-block; padding:8px 12px; background:rgba(255,255,255,0.2); color:white; border-radius:8px; border:none; font-size:12px; backdrop-filter:blur(4px); cursor:pointer;">🔗 Copy Link</button>
+            </div>
           </div>
           <div style="position: absolute; bottom: 20px; right: 10px; display: flex; flex-direction: column; gap: 15px; color: white; text-align: center;">
             <div style="cursor: pointer;"><span style="font-size: 24px;">❤️</span><br><small>12k</small></div>
@@ -378,8 +396,31 @@ function wallet() {
   return `<article class="module">${heading('wallet')}<div class="body"><div class="item"><span class="icon">₹</span><div><b>Personal spending logged</b><small>Stored permanently in backend</small></div><span class="amount">₹${total.toLocaleString('en-IN')}</span></div><form class="form-row" data-form="wallet" style="margin-top:14px"><input class="input" name="title" placeholder="Expense name" required><input class="input" name="amount" type="number" min="1" inputmode="decimal" placeholder="₹ Amount" required><button class="action">Add</button></form><div class="list">${items.length ? items.slice().reverse().map(x => `<div class="item"><span class="icon">₹</span><div class="grow"><b>${escapeHTML(x.title)}</b><small>Personal expense</small></div><b>₹${Number(x.amount).toLocaleString('en-IN')}</b></div>`).join('') : `<div class="empty">Log personal spending.</div>`}</div></div></article>`;
 }
 
+let vaultUnlocked = false;
 function vault() {
-  return `<article class="module">${heading('vault')}<div class="body"><p class="notice"><b>Never enter passwords here.</b> Use a dedicated audited password manager.</p></div></article>`;
+  if (!vaultUnlocked) {
+    document.body.classList.add('quantum-vault-theme');
+    return `<article class="module spatial">${heading('vault')}
+      <div class="body" style="text-align: center;">
+        <h2 style="color: #ff3333; text-transform: uppercase; letter-spacing: 2px;">Quantum Vault</h2>
+        <p style="color: #aa0000;">Biometric Lock Engaged</p>
+        <div class="scanner" id="vault-scanner">🔒</div>
+        <p style="color: #660000; font-size: 12px; margin-top: 20px;">Tap scanner to authenticate</p>
+      </div>
+    </article>`;
+  } else {
+    return `<article class="module spatial">${heading('vault')}
+      <div class="body">
+        <h2 style="color: #00ff00;">Access Granted</h2>
+        <p style="color: #00cc00;">Welcome to the Quantum Vault. All data here is encrypted via AES-256 (simulated).</p>
+        <div class="post-box" style="border-color: #004400; background: #001100;">
+          <textarea rows="3" placeholder="Enter highly classified notes..." style="background: transparent; color: #00ff00; border: none;"></textarea>
+          <div class="post-actions"><button class="action" style="background: #008800; color: white;">Encrypt & Save</button></div>
+        </div>
+        <button id="vault-lock-btn" style="margin-top:20px; background:#aa0000; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer;">Lock Vault</button>
+      </div>
+    </article>`;
+  }
 }
 
 function mail() {
@@ -427,10 +468,126 @@ function delivery() {
   return `<article class="module">${heading('delivery')}<div class="body"><form class="form-row" data-form="order"><input class="input" name="item" placeholder="Food item" required><input class="input" name="address" placeholder="Delivery area" required><button class="action">Add order</button></form><div class="list">${orders.length ? orders.slice().reverse().map(o => `<div class="item"><span class="icon">◒</span><div class="grow"><b>${escapeHTML(o.item)}</b><small>To ${escapeHTML(o.address)}</small></div><b>Demo</b></div>`).join('') : `<div class="empty">Create a local food-order preview.</div>`}</div></article>`;
 }
 
+let clockInterval = null;
+
+function planner() {
+  const items = db.get('tasks', []);
+  const priorities = items.filter(t => t.priority);
+  const regular = items.filter(t => !t.priority);
+  const mood = db.get('mood', null);
+  const notes = db.get('planner_notes', '');
+  
+  // Finance calculation
+  const walletItems = db.get('wallet', []);
+  let moneyOut = 0;
+  walletItems.forEach(i => { moneyOut += Number(i.amount) });
+  
+  // Schedule map (dummy defaults)
+  const schedule = db.get('schedule', [
+    { time: '08:00', task: 'Morning Workout' },
+    { time: '09:30', task: 'Deep Work Session' },
+    { time: '13:00', task: 'Lunch Break' },
+    { time: '15:00', task: 'Meetings & Sync' },
+    { time: '20:00', task: 'Wind Down & Reading' }
+  ]);
+  
+  // Sorting schedule by time
+  schedule.sort((a,b) => a.time.localeCompare(b.time));
+
+  return `<article class="module spatial">${heading('planner')}
+    <div class="body">
+      
+      <!-- Time & Date -->
+      <div class="planner-card clock-widget planner-full-width">
+        <div id="planner-date" class="clock-date">--</div>
+        <div id="planner-clock-12" class="clock-time">--:--</div>
+        <div id="planner-clock-24" class="clock-24h">--:--</div>
+      </div>
+      
+      <div class="planner-grid" style="margin-top:15px">
+        
+        <!-- Weather & Mood -->
+        <div class="planner-card">
+          <h3>☀ Environment</h3>
+          <div id="planner-weather" style="font-size:12px; margin-bottom:10px;">Loading weather...</div>
+          <p style="font-size:12px; font-weight:bold; margin-top:15px;">Today's Mood</p>
+          <div class="mood-selector">
+            <button class="mood-btn ${mood==='😎'?'active':''}" data-mood="😎">😎</button>
+            <button class="mood-btn ${mood==='🚀'?'active':''}" data-mood="🚀">🚀</button>
+            <button class="mood-btn ${mood==='☕'?'active':''}" data-mood="☕">☕</button>
+            <button class="mood-btn ${mood==='😴'?'active':''}" data-mood="😴">😴</button>
+          </div>
+        </div>
+
+        <!-- Finance Summary -->
+        <div class="planner-card">
+          <h3>₹ Finance</h3>
+          <div class="finance-stats">
+            <div class="finance-stat in">
+              <div style="font-size:10px">Money In</div>
+              <div class="finance-val">₹0</div>
+            </div>
+            <div class="finance-stat out">
+              <div style="font-size:10px">Money Out</div>
+              <div class="finance-val">₹${moneyOut.toLocaleString('en-IN')}</div>
+            </div>
+          </div>
+          <div style="text-align:center; margin-top:15px">
+            <button class="action" data-go="wallet" style="font-size:10px; padding:5px 10px;">Manage Wallet</button>
+          </div>
+        </div>
+
+        <!-- Schedule (24h) -->
+        <div class="planner-card planner-full-width">
+          <h3>⏱ 24h Schedule</h3>
+          <div class="timeline">
+            ${schedule.map((s, i) => `
+              <div class="timeline-item">
+                <div class="timeline-time">${s.time}</div>
+                <div class="timeline-task">${escapeHTML(s.task)}</div>
+                <button class="delete-schedule" data-idx="${i}" style="background:transparent; border:none; cursor:pointer; color:var(--muted)">×</button>
+              </div>
+            `).join('')}
+          </div>
+          <form class="form-row" data-form="schedule" style="margin-top:10px">
+            <input class="input" type="time" name="time" required style="max-width:80px;">
+            <input class="input" name="task" placeholder="Schedule a task" required>
+            <button class="action" style="padding: 10px;">+</button>
+          </form>
+        </div>
+
+        <!-- Priorities & Todos -->
+        <div class="planner-card planner-full-width">
+          <h3>✓ Priorities & Tasks</h3>
+          <div class="list" style="margin-bottom:10px">
+            ${priorities.map((t, i) => `<div class="item"><span style="color:var(--pink)">⭐</span><div class="grow"><b style="${t.done ? 'text-decoration:line-through;opacity:.5' : ''}">${escapeHTML(t.title)}</b></div></div>`).join('')}
+            ${regular.map((t, i) => `<div class="item"><div class="grow"><span style="${t.done ? 'text-decoration:line-through;opacity:.5' : ''}">${escapeHTML(t.title)}</span></div></div>`).join('')}
+          </div>
+          <form class="form-row" data-form="task-planner">
+            <input class="input" name="title" placeholder="Add a new task" required>
+            <label style="font-size:12px; display:flex; align-items:center; gap:5px;"><input type="checkbox" name="priority"> High</label>
+            <button class="action">Add</button>
+          </form>
+        </div>
+
+        <!-- Notes / Comments -->
+        <div class="planner-card planner-full-width">
+          <h3>📝 Comments & Notes</h3>
+          <form data-form="planner-notes">
+            <textarea name="notes" rows="4" placeholder="End of day reflections..." style="width:100%; border-radius:8px; padding:10px; border:1px solid var(--line); font-family:inherit; resize:vertical;">${escapeHTML(notes)}</textarea>
+            <div style="text-align:right; margin-top:5px"><button class="action">Save Notes</button></div>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </article>`;
+}
+
 function mount() {
   renderNav();
   location.hash = page;
-  const screens = { home, store, profile, social, video, music, chat, calls, maps, wallet, vault, mail, calendar, health, cloud, weather, safety, tasks, rides, delivery, reels, live, creator, premium };
+  const screens = { home, store, profile, social, video, music, chat, calls, maps, wallet, vault, mail, calendar, health, cloud, weather, safety, tasks, rides, delivery, reels, live, creator, premium, planner };
   if (!screens[page]) {
     page = 'home';
     location.hash = page;
@@ -440,6 +597,29 @@ function mount() {
   bind();
   if (page === 'weather') loadLiveWeather(28.6139, 77.209, 'New Delhi');
   if (page === 'maps') initMap();
+  
+  if (clockInterval) clearInterval(clockInterval);
+  if (page === 'planner') {
+    const wTarget = $('#planner-weather');
+    if (wTarget) {
+      fetch('https://api.open-meteo.com/v1/forecast?latitude=28.6139&longitude=77.209&current=temperature_2m,weather_code&timezone=auto')
+        .then(r => r.json())
+        .then(d => {
+          const icon = d.current.weather_code < 2 ? '☀' : d.current.weather_code < 4 ? '⛅' : '☁';
+          wTarget.innerHTML = `<b>${icon} ${Math.round(d.current.temperature_2m)}°C</b> - New Delhi`;
+        }).catch(e => { wTarget.innerHTML = 'Weather unavailable'; });
+    }
+    
+    clockInterval = setInterval(() => {
+      const now = new Date();
+      const c12 = $('#planner-clock-12');
+      const c24 = $('#planner-clock-24');
+      const d = $('#planner-date');
+      if (c12) c12.innerText = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+      if (c24) c24.innerText = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+      if (d) d.innerText = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    }, 1000);
+  }
 }
 
 function initMap() {
@@ -455,9 +635,53 @@ function initMap() {
 function bind() {
   document.querySelectorAll('[data-go]').forEach(b => b.onclick = () => { page = b.dataset.go; mount(); });
   
+  // Planner bindings
+  const schForm = $('[data-form="schedule"]');
+  if (schForm) schForm.onsubmit = e => {
+    e.preventDefault();
+    const d = new FormData(e.target);
+    const schedule = db.get('schedule', []);
+    schedule.push({ time: d.get('time'), task: d.get('task') });
+    db.set('schedule', schedule);
+    mount();
+  };
+
+  document.querySelectorAll('.delete-schedule').forEach(b => b.onclick = () => {
+    const idx = parseInt(b.dataset.idx);
+    const schedule = db.get('schedule', []);
+    schedule.splice(idx, 1);
+    db.set('schedule', schedule);
+    mount();
+  });
+
+  const tpForm = $('[data-form="task-planner"]');
+  if (tpForm) tpForm.onsubmit = e => {
+    e.preventDefault();
+    const d = new FormData(e.target);
+    const tasks = db.get('tasks', []);
+    tasks.push({ title: d.get('title'), priority: d.get('priority') === 'on', done: false });
+    db.set('tasks', tasks);
+    mount();
+  };
+
+  const pNotesForm = $('[data-form="planner-notes"]');
+  if (pNotesForm) pNotesForm.onsubmit = e => {
+    e.preventDefault();
+    const d = new FormData(e.target);
+    db.set('planner_notes', d.get('notes'));
+    const btn = e.target.querySelector('button');
+    btn.innerText = 'Saved!';
+    setTimeout(() => { btn.innerText = 'Save Notes'; }, 1000);
+  };
+
+  document.querySelectorAll('.mood-btn').forEach(b => b.onclick = () => {
+    db.set('mood', b.dataset.mood);
+    mount();
+  });
+  
   document.querySelectorAll('[data-install]').forEach(b => b.onclick = (e) => {
     const appId = e.target.dataset.install;
-    const installed = db.get('installed_apps', ['social', 'video', 'music', 'chat', 'calls', 'maps', 'wallet', 'tasks']);
+    const installed = db.get('installed_apps', ['social', 'video', 'music', 'chat', 'calls', 'maps', 'wallet', 'tasks', 'planner']);
     if (!installed.includes(appId)) {
       installed.push(appId);
       db.set('installed_apps', installed);
@@ -495,6 +719,55 @@ function bind() {
     btn.style.background = '#10b981';
     setTimeout(() => { btn.textContent = 'Save Profile'; btn.style.background = 'var(--violet)'; mount(); }, 1000);
   };
+
+  if (page === 'vault') {
+    if (!vaultUnlocked) {
+      const scanner = $('#vault-scanner');
+      if (scanner) {
+        scanner.onclick = () => {
+          scanner.innerHTML = '✅';
+          scanner.parentElement.classList.add('vault-unlocked');
+          setTimeout(() => {
+            vaultUnlocked = true;
+            mount();
+          }, 1000);
+        };
+      }
+    } else {
+      const lockBtn = $('#vault-lock-btn');
+      if (lockBtn) {
+        lockBtn.onclick = () => {
+          vaultUnlocked = false;
+          mount();
+        };
+      }
+    }
+  } else {
+    document.body.classList.remove('quantum-vault-theme');
+  }
+
+  // AI Neural Sync logic
+  const neuralBtn = $('#neural-sync-btn');
+  if (neuralBtn) {
+    neuralBtn.onclick = async () => {
+      neuralBtn.classList.add('neural-syncing');
+      neuralBtn.innerText = '🧠 Syncing Frequencies...';
+      const statuses = [
+        "Srijan is currently synchronized with the midnight frequency. 🌌",
+        "Exploring the boundary between code and consciousness. ⚙️",
+        "Uploading thoughts to the Srijan neural network... 100% 🚀",
+        "Experiencing reality at 144Hz. Everything is smooth. ✨"
+      ];
+      setTimeout(() => {
+        neuralBtn.classList.remove('neural-syncing');
+        neuralBtn.innerText = '🧠 AI Neural Sync';
+        const ta = $('#social-textarea');
+        if (ta) {
+          ta.value = statuses[Math.floor(Math.random() * statuses.length)];
+        }
+      }, 1500);
+    };
+  }
 
   const msg = $('[data-form="message"]');
   if (msg) msg.onsubmit = e => {
@@ -749,6 +1022,10 @@ $('#view').addEventListener('click', e => {
           // Use img tag since the backend now returns a .gif for maximum compatibility
           container.innerHTML = `
             <img src="${data.video_url}" style="width:100%; border-radius:8px; margin-bottom:10px; display:block !important;"></img>
+            <div style="display:flex; gap:10px; margin-bottom:10px;">
+              <a href="${data.video_url}" download="srijan_generated_video.gif" style="flex:1; display:block; text-align:center; padding:10px; background: #007bff; color: white !important; font-weight: bold; border-radius:8px; text-decoration:none; box-sizing:border-box;">⬇️ Save Video</a>
+              <button onclick="navigator.clipboard.writeText('${data.video_url}'); this.innerText='✅ URL Copied!'; setTimeout(() => this.innerText='🔗 Copy URL', 2000)" style="flex:1; display:block; text-align:center; padding:10px; background: #17a2b8; color: white !important; font-weight: bold; border-radius:8px; border:none; cursor:pointer; box-sizing:border-box;">🔗 Copy URL</button>
+            </div>
             <button class="publish-btn" data-videoid="${data.video_id}" style="width:100%; padding:10px; background: #28a745; color: white !important; font-weight: bold; border-radius:8px; border:none; cursor:pointer;">🚀 Publish Everywhere</button>
           `;
         }
@@ -864,4 +1141,20 @@ async function loadLiveWeather(lat, lon, name) {
 }
 
 // Start application
+
+// Spatial 3D UI mouse tracking
+document.addEventListener('mousemove', e => {
+  const spatials = document.querySelectorAll('.spatial');
+  if (spatials.length === 0) return;
+  const x = e.clientX / window.innerWidth;
+  const y = e.clientY / window.innerHeight;
+  // Calculate rotation (max 10 degrees)
+  const rx = (0.5 - y) * 20;
+  const ry = (x - 0.5) * 20;
+  spatials.forEach(el => {
+    el.style.setProperty('--rx', `${rx}deg`);
+    el.style.setProperty('--ry', `${ry}deg`);
+  });
+});
+
 initApp();

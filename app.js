@@ -494,88 +494,109 @@ function planner() {
   // Sorting schedule by time
   schedule.sort((a,b) => a.time.localeCompare(b.time));
 
-  return `<article class="module spatial">${heading('planner')}
+  return `<style>
+    .planner-grid-v2 { display: grid; gap: 20px; margin-top: 20px; }
+    @media (min-width: 600px) { .planner-grid-v2 { grid-template-columns: 1fr 1fr; } .planner-full-width-v2 { grid-column: 1 / -1; } }
+    .planner-card-v2 { background: var(--surface-light); border: 1px solid var(--line); border-radius: 16px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); transition: transform 0.2s; }
+    .planner-card-v2:hover { transform: translateY(-2px); }
+    .planner-card-v2 h3 { margin-top: 0; font-size: 16px; color: var(--violet); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; font-weight: 700; }
+    .clock-widget-v2 { text-align: center; background: linear-gradient(135deg, var(--dark), var(--violet)); color: white; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(124,58,237,0.3); }
+    .clock-24h-main { font-size: 56px; font-weight: 900; letter-spacing: -2px; line-height: 1; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+    .clock-12h-sub { font-size: 18px; opacity: 0.9; margin-top: 8px; font-weight: 500; }
+    .clock-date-v2 { font-size: 16px; margin-bottom: 15px; opacity: 0.8; text-transform: uppercase; letter-spacing: 1px; }
+    .mood-selector-v2 { display: flex; justify-content: space-around; margin-top: 15px; background: rgba(0,0,0,0.02); padding: 10px; border-radius: 12px; }
+    .mood-btn-v2 { background: transparent; border: 2px solid transparent; border-radius: 50%; font-size: 28px; width: 48px; height: 48px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+    .mood-btn-v2:hover { background: rgba(0,0,0,0.05); }
+    .mood-btn-v2.active { background: #f3e8ff; border-color: var(--violet); transform: scale(1.15); box-shadow: 0 4px 10px rgba(124,58,237,0.2); }
+    .timeline-v2 { display: flex; flex-direction: column; gap: 12px; }
+    .timeline-item-v2 { display: flex; gap: 15px; align-items: center; padding: 12px 15px; background: white; border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+    .timeline-time-v2 { font-weight: 800; color: var(--violet); font-size: 14px; min-width: 50px; background: #f3e8ff; padding: 4px 8px; border-radius: 6px; text-align: center; }
+    .timeline-task-v2 { flex: 1; font-size: 14px; font-weight: 500; }
+  </style>
+  <article class="module spatial">${heading('planner')}
     <div class="body">
       
       <!-- Time & Date -->
-      <div class="planner-card clock-widget planner-full-width">
-        <div id="planner-date" class="clock-date">--</div>
-        <div id="planner-clock-12" class="clock-time">--:--</div>
-        <div id="planner-clock-24" class="clock-24h">--:--</div>
+      <div class="planner-card-v2 clock-widget-v2 planner-full-width-v2">
+        <div id="planner-date" class="clock-date-v2">--</div>
+        <div id="planner-clock-24" class="clock-24h-main">--:--</div>
+        <div id="planner-clock-12" class="clock-12h-sub">--:--</div>
       </div>
       
-      <div class="planner-grid" style="margin-top:15px">
+      <div class="planner-grid-v2">
         
         <!-- Weather & Mood -->
-        <div class="planner-card">
+        <div class="planner-card-v2">
           <h3>☀ Environment</h3>
-          <div id="planner-weather" style="font-size:12px; margin-bottom:10px;">Loading weather...</div>
-          <p style="font-size:12px; font-weight:bold; margin-top:15px;">Today's Mood</p>
-          <div class="mood-selector">
-            <button class="mood-btn ${mood==='😎'?'active':''}" data-mood="😎">😎</button>
-            <button class="mood-btn ${mood==='🚀'?'active':''}" data-mood="🚀">🚀</button>
-            <button class="mood-btn ${mood==='☕'?'active':''}" data-mood="☕">☕</button>
-            <button class="mood-btn ${mood==='😴'?'active':''}" data-mood="😴">😴</button>
+          <div id="planner-weather" style="font-size:14px; margin-bottom:15px; font-weight: 500; display:flex; align-items:center; gap:8px;">
+            <span style="opacity:0.6">Locating...</span>
+          </div>
+          <p style="font-size:13px; font-weight:700; margin-top:20px; color:var(--text);">Today's Mood</p>
+          <div class="mood-selector-v2">
+            <button class="mood-btn-v2 ${mood==='😎'?'active':''}" data-mood="😎">😎</button>
+            <button class="mood-btn-v2 ${mood==='🚀'?'active':''}" data-mood="🚀">🚀</button>
+            <button class="mood-btn-v2 ${mood==='☕'?'active':''}" data-mood="☕">☕</button>
+            <button class="mood-btn-v2 ${mood==='😴'?'active':''}" data-mood="😴">😴</button>
           </div>
         </div>
 
         <!-- Finance Summary -->
-        <div class="planner-card">
+        <div class="planner-card-v2">
           <h3>₹ Finance</h3>
-          <div class="finance-stats">
+          <div class="finance-stats" style="margin-top: 20px;">
             <div class="finance-stat in">
-              <div style="font-size:10px">Money In</div>
-              <div class="finance-val">₹0</div>
+              <div style="font-size:12px; font-weight:600; opacity:0.8; text-transform:uppercase">Money In</div>
+              <div class="finance-val" style="font-size:28px; margin-top:5px;">₹0</div>
             </div>
             <div class="finance-stat out">
-              <div style="font-size:10px">Money Out</div>
-              <div class="finance-val">₹${moneyOut.toLocaleString('en-IN')}</div>
+              <div style="font-size:12px; font-weight:600; opacity:0.8; text-transform:uppercase">Money Out</div>
+              <div class="finance-val" style="font-size:28px; margin-top:5px;">₹${moneyOut.toLocaleString('en-IN')}</div>
             </div>
           </div>
-          <div style="text-align:center; margin-top:15px">
-            <button class="action" data-go="wallet" style="font-size:10px; padding:5px 10px;">Manage Wallet</button>
+          <div style="text-align:center; margin-top:25px">
+            <button class="action" data-go="wallet" style="font-size:12px; padding:10px 20px; border-radius:20px; background:#f3e8ff; color:var(--violet); font-weight:bold;">Manage Wallet</button>
           </div>
         </div>
 
         <!-- Schedule (24h) -->
-        <div class="planner-card planner-full-width">
+        <div class="planner-card-v2 planner-full-width-v2">
           <h3>⏱ 24h Schedule</h3>
-          <div class="timeline">
+          <div class="timeline-v2">
             ${schedule.map((s, i) => `
-              <div class="timeline-item">
-                <div class="timeline-time">${s.time}</div>
-                <div class="timeline-task">${escapeHTML(s.task)}</div>
-                <button class="delete-schedule" data-idx="${i}" style="background:transparent; border:none; cursor:pointer; color:var(--muted)">×</button>
+              <div class="timeline-item-v2">
+                <div class="timeline-time-v2">${s.time}</div>
+                <div class="timeline-task-v2">${escapeHTML(s.task)}</div>
+                <button class="delete-schedule" data-idx="${i}" style="background:transparent; border:none; cursor:pointer; color:var(--muted); font-size:20px; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center;">×</button>
               </div>
             `).join('')}
           </div>
-          <form class="form-row" data-form="schedule" style="margin-top:10px">
-            <input class="input" type="time" name="time" required style="max-width:80px;">
+          <form class="form-row" data-form="schedule" style="margin-top:15px; padding: 15px; background: rgba(0,0,0,0.02); border-radius: 12px;">
+            <input class="input" type="time" name="time" required style="max-width:110px; font-weight:bold;">
             <input class="input" name="task" placeholder="Schedule a task" required>
-            <button class="action" style="padding: 10px;">+</button>
+            <button class="action" style="padding: 12px; border-radius: 12px;">+</button>
           </form>
         </div>
 
         <!-- Priorities & Todos -->
-        <div class="planner-card planner-full-width">
+        <div class="planner-card-v2 planner-full-width-v2">
           <h3>✓ Priorities & Tasks</h3>
-          <div class="list" style="margin-bottom:10px">
-            ${priorities.map((t, i) => `<div class="item"><span style="color:var(--pink)">⭐</span><div class="grow"><b style="${t.done ? 'text-decoration:line-through;opacity:.5' : ''}">${escapeHTML(t.title)}</b></div></div>`).join('')}
-            ${regular.map((t, i) => `<div class="item"><div class="grow"><span style="${t.done ? 'text-decoration:line-through;opacity:.5' : ''}">${escapeHTML(t.title)}</span></div></div>`).join('')}
+          <div class="list" style="margin-bottom:15px">
+            ${priorities.map((t, i) => `<div class="item" style="padding:12px; background:white; border-radius:8px; margin-bottom:8px; border:1px solid #fce7f3;"><span style="color:var(--pink); font-size:18px;">⭐</span><div class="grow"><b style="${t.done ? 'text-decoration:line-through;opacity:.5' : 'font-size:15px;'}">${escapeHTML(t.title)}</b></div></div>`).join('')}
+            ${regular.map((t, i) => `<div class="item" style="padding:12px; border-bottom:1px solid var(--line);"><div class="grow"><span style="${t.done ? 'text-decoration:line-through;opacity:.5' : 'font-size:14px; font-weight:500;'}">${escapeHTML(t.title)}</span></div></div>`).join('')}
           </div>
-          <form class="form-row" data-form="task-planner">
-            <input class="input" name="title" placeholder="Add a new task" required>
-            <label style="font-size:12px; display:flex; align-items:center; gap:5px;"><input type="checkbox" name="priority"> High</label>
-            <button class="action">Add</button>
+          <form class="form-row" data-form="task-planner" style="padding: 10px; background: rgba(0,0,0,0.02); border-radius: 12px;">
+            <input class="input" name="title" placeholder="Add a new task" required style="background:white;">
+            <label style="font-size:14px; display:flex; align-items:center; gap:8px; font-weight:500;"><input type="checkbox" name="priority" style="width:18px;height:18px;"> High</label>
+            <button class="action" style="border-radius:10px;">Add</button>
           </form>
         </div>
 
         <!-- Notes / Comments -->
-        <div class="planner-card planner-full-width">
+        <div class="planner-card-v2 planner-full-width-v2">
           <h3>📝 Comments & Notes</h3>
           <form data-form="planner-notes">
-            <textarea name="notes" rows="4" placeholder="End of day reflections..." style="width:100%; border-radius:8px; padding:10px; border:1px solid var(--line); font-family:inherit; resize:vertical;">${escapeHTML(notes)}</textarea>
-            <div style="text-align:right; margin-top:5px"><button class="action">Save Notes</button></div>
+            <textarea name="notes" rows="4" placeholder="End of day reflections..." style="width:100%; border-radius:12px; padding:15px; border:1px solid var(--line); font-family:inherit; resize:vertical; font-size:14px; line-height:1.5;">${escapeHTML(notes)}</textarea>
+            <div style="text-align:right; margin-top:10px"><button class="action" style="border-radius:20px; padding:8px 20px;">Save Notes</button></div>
           </form>
         </div>
 
@@ -602,12 +623,22 @@ function mount() {
   if (page === 'planner') {
     const wTarget = $('#planner-weather');
     if (wTarget) {
-      fetch('https://api.open-meteo.com/v1/forecast?latitude=28.6139&longitude=77.209&current=temperature_2m,weather_code&timezone=auto')
+      async function fetchWeather(lat, lon, city) {
+        try {
+          const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&timezone=auto`);
+          const d = await r.json();
+          const icon = d.current.weather_code < 2 ? '☀' : d.current.weather_code < 4 ? '⛅' : '☁';
+          wTarget.innerHTML = `<b>${icon} ${Math.round(d.current.temperature_2m)}°C</b> - ${city}`;
+        } catch (e) { wTarget.innerHTML = 'Weather unavailable'; }
+      }
+      
+      fetch('https://ipapi.co/json/')
         .then(r => r.json())
         .then(d => {
-          const icon = d.current.weather_code < 2 ? '☀' : d.current.weather_code < 4 ? '⛅' : '☁';
-          wTarget.innerHTML = `<b>${icon} ${Math.round(d.current.temperature_2m)}°C</b> - New Delhi`;
-        }).catch(e => { wTarget.innerHTML = 'Weather unavailable'; });
+          if (d && d.latitude && d.city) fetchWeather(d.latitude, d.longitude, d.city);
+          else fetchWeather(26.8467, 80.9462, 'Lucknow');
+        })
+        .catch(() => fetchWeather(26.8467, 80.9462, 'Lucknow'));
     }
     
     clockInterval = setInterval(() => {
